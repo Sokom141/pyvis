@@ -27,18 +27,18 @@ class Network(object):
     """
 
     def __init__(self,
-                 height="600px",
-                 width="100%",
-                 directed=False,
-                 notebook=False,
-                 neighborhood_highlight=False,
-                 select_menu=False,
-                 filter_menu=False,
-                 bgcolor="#ffffff",
-                 font_color=False,
-                 layout=None,
-                 heading="",
-                 cdn_resources="local"):
+                 height: str = "600px",
+                 width: str = "100%",
+                 directed: bool = False,
+                 notebook: bool = False,
+                 neighborhood_highlight: bool = False,
+                 select_menu: bool = False,
+                 filter_menu: bool = False,
+                 bgcolor: str = "#ffffff",
+                 font_color: str = False,
+                 layout = None,
+                 heading: str = "",
+                 cdn_resources: str = "local"):
         """
         :param height: The height of the canvas
         :param width: The width of the canvas
