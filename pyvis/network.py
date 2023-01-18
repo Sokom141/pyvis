@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import tempfile
+from typing import Dict
 import webbrowser
 from collections import defaultdict
 
@@ -738,6 +739,16 @@ class Network(object):
         :returns: dict containing node properties
         """
         return self.node_map[n_id]
+
+    def try_get_node(self, n_id) -> None | Dict :
+        """
+        Lookup node by ID and return it if it exists.
+
+        :param n_id: The ID given to the node.
+
+        :returns: dict containing node properties or None if the node doesn't exists
+        """
+        return self.node_map.get(n_id)
 
     def get_edges(self):
         """
