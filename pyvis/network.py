@@ -4,7 +4,7 @@ import shutil
 import tempfile
 from typing import Dict
 
-# import webbrowser
+import webbrowser
 from collections import defaultdict
 
 import jsonpickle
