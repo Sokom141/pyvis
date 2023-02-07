@@ -498,7 +498,7 @@ class Network(object):
         else:
             physics_enabled = self.options.physics.enabled
 
-        select_nodes = True if nodes_info is not None else False
+        search_node = True if nodes_info is not None else False
         self.html = template.render(
             height=height,
             width=width,
@@ -518,7 +518,7 @@ class Network(object):
             filter_menu=self.filter_menu,
             notebook=notebook,
             cdn_resources=self.cdn_resources,
-            select_nodes=select_nodes,
+            search_node=search_node,
             nodes_info=nodes_info,
         )
         return self.html
