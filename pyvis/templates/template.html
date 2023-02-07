@@ -234,6 +234,53 @@
               </div>
             {% endif %}
             <div id="mynetwork" class="card-body"></div>
+            {% if search_node %}
+              <div id="filter-menu-2" class="card-header">
+                <div class="row no-gutters">
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilterInfo(value, 'item')"
+                            id="select-item-info"
+                        >
+                        <option value="">Select an item</option>
+                        <option value="hostname">hostname</option>
+                        <option value="tcp port">tcp port</option>
+                        <option value="os">os</option>
+                        <option value="uptime">uptime</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilterInfo(value, 'property')"
+                            id="select-property-info"
+                        >
+                        <option value="">Select a value...</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            id="select-value-info"
+                        >
+                        <option value="">Select ip(s)...</option>
+                    </select>
+                  </div>
+                  <div class="col-1 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="highlightFilterInfo(filter_info);">Filter</button>
+                  </div>
+                  <div class="col-2 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="clearFilterInfo(true)">Reset Selection</button>
+                  </div>
+                </div>
+              </div>
+
+            <div id="search" style="height:30vh;overflow:auto;padding-left:15px"></div>
+            {% endif %}
         </div>
 
         {% if nodes|length > 100 and physics_enabled %}
@@ -266,6 +313,11 @@
                   item : '',
                   property : '',
                   value : []
+              };
+              var filterInfo = {
+                  item: '',
+                  property: '',
+                  value: []
               };
 
               {% if select_menu %}
@@ -406,6 +458,231 @@
 
               {%  endif %}
 
+              {% if search_node %}
+                  // explicitly using onItemAdd and this function as we need to save multiple values
+                  let updateValueFilterInfo = function() {
+                      return function () {
+                      arg = arguments[0];
+                      node = nodes_info[arg];
+                      filterInfo'value'].push(arg);
+                      ports = "<ul>";
+                      tcp_port = node["tcp"];
+                      for (let port in tcp_port) {
+                          port_state = tcp_port[port]['state'];
+                          if (port_state === "open") {
+                              port_state = `<b>${port_state}</b>`;
+                          }
+                          ports += `<li>${port}: ${tcp_port[port]['name']} (${port_state})</li>`;
+                      }
+                      ports += "</ul>";
+                      osstr = "";
+                      if (node.hasOwnProperty("osmatch")){ 
+                          osmatch = node["osmatch"];
+                          if (osmatch) {
+                              osmatch = osmatch[0];
+                              osstr = `<ul><li>Name:<ul><li>${osmatch["name"]}</li></ul></li><li>Type:<ul><li>${osmatch["osclass"][0]["type"]}</li></ul></li><li>Accuracy:<ul><li>${osmatch["accuracy"]}%</li></ul></li></ul>`;
+                          }
+                      }
+                      repr = `<h4>Address:</h4> ${arg}<br><h4>TCP ports:</h4> ${ports}<h4>OSMATCH:</h4> ${osstr}`;
+                      document.getElementById('search').innerHTML += `<div><span class="name">${repr}</span></div><hr>`;
+                      }
+                  }
+
+                  let valueControlInfo = new TomSelect("#select-value-info",{
+                      maxItems: null,
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: updateValueFilterInfo()
+                  });
+
+                  let addValuesInfo = function() {
+                      return function () {
+                          // clear the current value options and add the selected attribute values
+                          // tom-select handles duplicates
+                          let selectedProperty = arguments[0];
+                          valueControlInfo.clear();
+                          valueControlInfo.clearOptions();
+                          filterInfo['value'] = []
+                          if (filterInfo['item'] === 'tcp port') {
+                              for (let each in nodes_info) {
+                                  info = nodes_info[each];
+                                  if (info.hasOwnProperty("tcp") && info["tcp"]) {
+                                      if (info["tcp"].hasOwnProperty(selectedProperty)) {
+                                          valueControlInfo.addOption({
+                                              id:each,
+                                              title:each
+                                          })
+                                        }
+                                  }
+                              }
+                          }
+                          else if (filterInfo['item'] === 'os') {
+                              for (let each in nodes_info) {
+                                  info = nodes_info[each];
+                              if (info.hasOwnProperty("osmatch") && info["osmatch"]) {
+                                  osmatch = info["osmatch"][0];
+                                  if (osmatch && osmatch.hasOwnProperty("name") && osmatch["name"] === selectedProperty) {
+                                      valueControlInfo.addOption({
+                                          id:each,
+                                          title:each
+                                      })
+                                  }
+                              }
+                              }
+                          }
+                         else if (filterInfo['item'] === 'uptime') {
+                          for (let each in nodes_info) {
+                              info = nodes_info[each];
+                              if (info.hasOwnProperty("uptime") && info["uptime"]) {
+                                  last_boot = info["uptime"]["lastboot"];
+                                  if (last_boot && last_boot === selectedProperty) {
+                                      valueControlInfo.addOption({
+                                          id: each,
+                                          title: each
+                                      })
+                                  }
+                              }
+                          }
+                        }
+                          else if (filterInfo['item'] === 'hostname') {
+                              for (let each in nodes_info) {
+                                  info = nodes_info[each];
+                                  if (info.hasOwnProperty("hostnames") && info["hostnames"]) {
+                                      name = info["hostnames"][0]["name"];
+                                      if (name && name === selectedProperty) {
+                                          valueControlInfo.addOption({
+                                              id: each,
+                                              title: each,
+                                          })
+                                      } 
+                                  }
+                              }
+                          }
+                      }
+                  };
+
+                  let propControlInfo = new TomSelect("#select-property-info",{
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addValuesInfo()
+                  });
+
+                  let addPropertiesInfo = function() {
+                      return function () {
+                          // loops through the selected network item and adds the attributes to dropdown
+                          // tom-select handles duplicates
+                          clearFilterInfo(false);
+                          arg = arguments[0];
+
+                          if (arg === 'tcp port') {
+                              for (let each in nodes_info) {
+                                  if (nodes_info[each].hasOwnProperty("tcp")) {
+                                      for (let port in nodes_info[each]["tcp"]) {
+                                        port_with_service = `${port} - ${nodes_info[each]["tcp"][port]["name"]}`;
+                                        propControlInfo.addOption({id: port, title: port_with_service})
+                                      }
+                                  }
+                              }
+                          } else if (arg === 'os') {
+                              for (let each in nodes_info) {
+                                if (nodes_info[each].hasOwnProperty("osmatch")) {
+                                  osmatch = nodes_info[each]["osmatch"];
+                                  if (osmatch) {
+                                      if (osmatch[0]) {
+                                        name = osmatch[0]["name"];
+                                        propControlInfo.addOption({id: name, title: name})
+                                      }
+                                  }
+                                }
+                              }
+                          } else if (arg === 'uptime') {
+                              for (let each in nodes_info) {
+                                if (nodes_info[each].hasOwnProperty("uptime")) {
+                                  if (nodes_info[each]["uptime"].hasOwnProperty("lastboot")) {
+                                      last_boot = nodes_info[each]["uptime"]["lastboot"];
+                                      if (last_boot) {
+                                          propControlInfo.addOption({id: last_boot, title: last_boot})
+                                      }
+                                  }
+                                }
+                              }
+                      } else if (arg === 'hostname') {
+                          for (let each in nodes_info) {
+                              if (nodes_info[each].hasOwnProperty("hostnames")) {
+                                  hostnames = nodes_info[each]["hostnames"];
+                                  if (hostnames && hostnames[0]) {
+                                      hostname = hostnames[0];
+                                      if (hostname["name"] !== "") {
+                                          name = hostname["name"];
+                                          propControlInfo.addOption({id: name, title: name})
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                      }
+                  };
+
+                  let itemControlInfo = new TomSelect("#select-item-info",{
+                      create: false,
+                      sortField:{
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addPropertiesInfo()
+                  });
+
+                  function clearFilterInfo(reset) {
+                      // utility function to clear all the selected filter options
+                      // if reset is set to true, the existing filter will be removed
+                      // else, only the dropdown options are cleared
+                      document.getElementById('search').innerHTML = ``;
+                      propControlInfo.clear();
+                      propControlInfo.clearOptions();
+                      valueControlInfo.clear();
+                      valueControlInfo.clearOptions();
+                      filterInfo = {
+                          item : '',
+                          property : '',
+                          value : []
+                      }
+                      if (reset) {
+                          itemControlInfo.clear();
+                          filterHighlight({nodes: []})
+                      }
+                  }
+
+                  function updateFilterInfo(value, key) {
+                      // key could be 'item' or 'property' and value is as selected in dropdown
+                      filterInfo[key] = value
+                  }
+
+                function highlightFilterInfo(filter_node) {
+                    let filter_subnets = [];
+                    for (let i in filter_node["value"]) {
+                       res = filter_node["value"][i].split(".").slice(0, 3);
+                       res.push("0");
+                       node = res.join(".");
+                       filter_subnets.push(node);
+                    }
+                    selectNodes(filter_subnets);
+                }
+
+              {% endif %}
+
+
               // This method is responsible for drawing the graph, returns the drawn network
               function drawGraph() {
                   var container = document.getElementById('mynetwork');
@@ -430,6 +707,7 @@
                   // parsing and collecting nodes and edges from the python
                   nodes = new vis.DataSet({{nodes|tojson}});
                   edges = new vis.DataSet({{edges|tojson}});
+                  nodes_info = {{nodes_info|tojson}};
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

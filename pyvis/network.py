@@ -3,7 +3,8 @@ import os
 import shutil
 import tempfile
 from typing import Dict
-import webbrowser
+
+# import webbrowser
 from collections import defaultdict
 
 import jsonpickle
@@ -27,19 +28,21 @@ class Network(object):
     >>> nt = Network()
     """
 
-    def __init__(self,
-                 height: str = "600px",
-                 width: str = "100%",
-                 directed: bool = False,
-                 notebook: bool = False,
-                 neighborhood_highlight: bool = False,
-                 select_menu: bool = False,
-                 filter_menu: bool = False,
-                 bgcolor: str = "#ffffff",
-                 font_color: str = False,
-                 layout = None,
-                 heading: str = "",
-                 cdn_resources: str = "local"):
+    def __init__(
+        self,
+        height: str = "600px",
+        width: str = "100%",
+        directed: bool = False,
+        notebook: bool = False,
+        neighborhood_highlight: bool = False,
+        select_menu: bool = False,
+        filter_menu: bool = False,
+        bgcolor: str = "#ffffff",
+        font_color: str = False,
+        layout=None,
+        heading: str = "",
+        cdn_resources: str = "local",
+    ):
         """
         :param height: The height of the canvas
         :param width: The width of the canvas
@@ -90,12 +93,18 @@ class Network(object):
         self.neighborhood_highlight = neighborhood_highlight
         self.select_menu = select_menu
         self.filter_menu = filter_menu
-        assert cdn_resources in ["local", "in_line", "remote"], "cdn_resources not in [local, in_line, remote]."
+        assert cdn_resources in [
+            "local",
+            "in_line",
+            "remote",
+        ], "cdn_resources not in [local, in_line, remote]."
         self.template_dir = os.path.dirname(__file__) + "/templates/"
         self.templateEnv = Environment(loader=FileSystemLoader(self.template_dir))
 
         if cdn_resources == "local" and notebook == True:
-            print("Local cdn resources have problems on chrome/safari when used in jupyter-notebook. ")
+            print(
+                "Local cdn resources have problems on chrome/safari when used in jupyter-notebook. "
+            )
         self.cdn_resources = cdn_resources
 
         if notebook:
@@ -112,18 +121,18 @@ class Network(object):
                     "Edges": self.edges,
                     "Height": self.height,
                     "Width": self.width,
-                    "Heading": self.heading
+                    "Heading": self.heading,
                 },
-                indent=4
+                indent=4,
             )
         )
 
     def __repr__(self):
-        return '{} |N|={} |E|={:,}'.format(
+        return "{} |N|={} |E|={:,}".format(
             self.__class__, self.num_nodes(), self.num_edges()
         )
 
-    def add_node(self, n_id, label=None, shape="dot", color='#97c2fc', **options):
+    def add_node(self, n_id, label=None, shape="dot", color="#97c2fc", **options):
         """
         This method adds a node to the network, given a mandatory node ID.
         Node labels default to node ids if no label is specified during the
@@ -238,9 +247,18 @@ class Network(object):
             node_label = n_id
         if n_id not in self.node_ids:
             if "group" in options:
-                n = Node(n_id, shape, label=node_label, font_color=self.font_color, **options)
+                n = Node(
+                    n_id, shape, label=node_label, font_color=self.font_color, **options
+                )
             else:
-                n = Node(n_id, shape, label=node_label, color=color, font_color=self.font_color, **options)
+                n = Node(
+                    n_id,
+                    shape,
+                    label=node_label,
+                    color=color,
+                    font_color=self.font_color,
+                    **options,
+                )
             self.nodes.append(n.options)
             self.node_ids.append(n_id)
             self.node_map[n_id] = n.options
@@ -269,21 +287,17 @@ class Network(object):
 
         :type nodes: list
         """
-        valid_args = ["size", "value", "title",
-            "x", "y", "label", "color", "shape"]
+        valid_args = ["size", "value", "title", "x", "y", "label", "color", "shape"]
         for k in kwargs:
             assert k in valid_args, "invalid arg '" + k + "'"
 
         nd = defaultdict(dict)
         for i in range(len(nodes)):
             for k, v in kwargs.items():
-                assert (
-                        len(v) == len(nodes)
-                ), "keyword arg %s [length %s] does not match" \
-                   "[length %s] of nodes" % \
-                   (
-                       k, len(v), len(nodes)
-                   )
+                assert len(v) == len(nodes), (
+                    "keyword arg %s [length %s] does not match"
+                    "[length %s] of nodes" % (k, len(v), len(nodes))
+                )
                 nd[nodes[i]].update({k: v[i]})
 
         for node in nodes:
@@ -364,21 +378,16 @@ class Network(object):
         edge_exists = False
 
         # verify nodes exists
-        assert source in self.get_nodes(), \
-            "non existent node '" + str(source) + "'"
+        assert source in self.get_nodes(), "non existent node '" + str(source) + "'"
 
-        assert to in self.get_nodes(), \
-            "non existent node '" + str(to) + "'"
+        assert to in self.get_nodes(), "non existent node '" + str(to) + "'"
 
         # we only check existing edge for undirected graphs
         if not self.directed:
             for e in self.edges:
-                frm = e['from']
-                dest = e['to']
-                if (
-                        (source == dest and to == frm) or
-                        (source == frm and to == dest)
-                ):
+                frm = e["from"]
+                dest = e["to"]
+                if (source == dest and to == frm) or (source == frm and to == dest):
                     # edge already exists
                     edge_exists = True
 
@@ -419,23 +428,38 @@ class Network(object):
         >>> nodes, edges, heading, height, width, options = net.get_network_data()
         """
         if isinstance(self.options, dict):
-            return (self.nodes, self.edges, self.heading, self.height,
-                    self.width, json.dumps(self.options))
+            return (
+                self.nodes,
+                self.edges,
+                self.heading,
+                self.height,
+                self.width,
+                json.dumps(self.options),
+            )
         else:
-            return (self.nodes, self.edges, self.heading, self.height,
-                    self.width, self.options.to_json())
+            return (
+                self.nodes,
+                self.edges,
+                self.heading,
+                self.height,
+                self.width,
+                self.options.to_json(),
+            )
 
-    def save_graph(self, name):
+    def save_graph(self, name, nodes_info=None):
         """
         Save the graph as html in the current directory with name.
 
         :param name: the name of the html file to save as
         :type name: str
+        :param nodes_info: data to be used for search functionality
         """
         check_html(name)
-        self.write_html(name)
+        self.write_html(name, nodes_info=nodes_info)
 
-    def generate_html(self, name="index.html", local=True, notebook=False):
+    def generate_html(
+        self, name="index.html", local=True, notebook=False, nodes_info=None
+    ):
         """
         This method gets the data structures supporting the nodes, edges,
         and options and updates the template to write the HTML holding
@@ -467,35 +491,39 @@ class Network(object):
 
         # check if physics is enabled
         if isinstance(self.options, dict):
-            if 'physics' in self.options and 'enabled' in self.options['physics']:
-                physics_enabled = self.options['physics']['enabled']
+            if "physics" in self.options and "enabled" in self.options["physics"]:
+                physics_enabled = self.options["physics"]["enabled"]
             else:
                 physics_enabled = True
         else:
             physics_enabled = self.options.physics.enabled
 
-        self.html = template.render(height=height,
-                                    width=width,
-                                    nodes=nodes,
-                                    edges=edges,
-                                    heading=heading,
-                                    options=options,
-                                    physics_enabled=physics_enabled,
-                                    use_DOT=self.use_DOT,
-                                    dot_lang=self.dot_lang,
-                                    widget=self.widget,
-                                    bgcolor=self.bgcolor,
-                                    conf=self.conf,
-                                    tooltip_link=use_link_template,
-                                    neighborhood_highlight=self.neighborhood_highlight,
-                                    select_menu=self.select_menu,
-                                    filter_menu=self.filter_menu,
-                                    notebook=notebook,
-                                    cdn_resources=self.cdn_resources
-                                    )
+        select_nodes = True if nodes_info is not None else False
+        self.html = template.render(
+            height=height,
+            width=width,
+            nodes=nodes,
+            edges=edges,
+            heading=heading,
+            options=options,
+            physics_enabled=physics_enabled,
+            use_DOT=self.use_DOT,
+            dot_lang=self.dot_lang,
+            widget=self.widget,
+            bgcolor=self.bgcolor,
+            conf=self.conf,
+            tooltip_link=use_link_template,
+            neighborhood_highlight=self.neighborhood_highlight,
+            select_menu=self.select_menu,
+            filter_menu=self.filter_menu,
+            notebook=notebook,
+            cdn_resources=self.cdn_resources,
+            select_nodes=select_nodes,
+            nodes_info=nodes_info,
+        )
         return self.html
 
-    def write_html(self, name, local=True, notebook=False):
+    def write_html(self, name, local=True, notebook=False, nodes_info=None):
         """
         This method gets the data structures supporting the nodes, edges,
         and options and updates the template to write the HTML holding
@@ -503,7 +531,7 @@ class Network(object):
         :type name_html: str
         """
         check_html(name)
-        self.html = self.generate_html(notebook=notebook)
+        self.html = self.generate_html(notebook=notebook, nodes_info=nodes_info)
 
         with open(name, "w+") as out:
             out.write(self.html)
@@ -516,11 +544,20 @@ class Network(object):
             if not os.path.exists("lib"):
                 os.makedirs(os.path.dirname("lib"))
             if not os.path.exists("lib/bindings"):
-                shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib/bindings", "lib/bindings")
+                shutil.copytree(
+                    f"{os.path.dirname(__file__)}/templates/lib/bindings",
+                    "lib/bindings",
+                )
             if not os.path.exists("lib/tom-select"):
-                shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib/tom-select", "lib/tom-select")
+                shutil.copytree(
+                    f"{os.path.dirname(__file__)}/templates/lib/tom-select",
+                    "lib/tom-select",
+                )
             if not os.path.exists("lib/bindings"):
-                shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib/vis-9.1.2", "lib/vis-9.1.2")
+                shutil.copytree(
+                    f"{os.path.dirname(__file__)}/templates/lib/vis-9.1.2",
+                    "lib/vis-9.1.2",
+                )
             with open(name, "w+") as out:
                 out.write(self.html)
             return IFrame(name, width=self.width, height=self.height)
@@ -532,7 +569,9 @@ class Network(object):
             # with tempfile.mkdtemp() as tempdir:
             if os.path.exists(f"{tempdir}/lib"):
                 shutil.rmtree(f"{tempdir}/lib")
-            shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib", f"{tempdir}/lib")
+            shutil.copytree(
+                f"{os.path.dirname(__file__)}/templates/lib", f"{tempdir}/lib"
+            )
 
             with open(f"{tempdir}/{name}", "w+") as out:
                 out.write(self.html)
@@ -552,8 +591,7 @@ class Network(object):
             self.write_html(name, local)
             # webbrowser.open(name)
 
-    def prep_notebook(self,
-                      custom_template=False, custom_template_path=None):
+    def prep_notebook(self, custom_template=False, custom_template_path=None):
         """
         Loads the template data into the template attribute of the network.
         This should be done in a jupyter notebook environment before showing
@@ -575,19 +613,19 @@ class Network(object):
 
     def set_template(self, path_to_template: str):
         """
-            Path to full template assumes that it exists inside of a template directory.
-            Use `set_template_dir` to set the relative template path to the template directory along with the directory location itself
-            to change both values otherwise this function will infer the results.
-            :path_to_template path: full os path string value of the template directory
+        Path to full template assumes that it exists inside of a template directory.
+        Use `set_template_dir` to set the relative template path to the template directory along with the directory location itself
+        to change both values otherwise this function will infer the results.
+        :path_to_template path: full os path string value of the template directory
         """
-        str_parts = path_to_template.split('/')
+        str_parts = path_to_template.split("/")
         self.set_template_dir("/".join(str_parts[:-1]) + "/", str_parts[-1])
 
-    def set_template_dir(self, template_directory, template_file='template.html'):
+    def set_template_dir(self, template_directory, template_file="template.html"):
         """
-            Path to template directory along with the location of the template file.
-            :template_directory path: template directory
-            :template_file path: name of the template file that is going to be used to generate the html doc.
+        Path to template directory along with the location of the template file.
+        :template_directory path: template directory
+        :template_file path: name of the template file that is going to be used to generate the html doc.
 
         """
         self.path = template_file
@@ -655,13 +693,22 @@ class Network(object):
 
         :returns: set
         """
-        assert (isinstance(node, str) or isinstance(node, int)
-                ), "error: expected int or str for node but got %s" % type(node)
-        assert (node in self.node_ids), "error: %s node not in network" % node
+        assert isinstance(node, str) or isinstance(
+            node, int
+        ), "error: expected int or str for node but got %s" % type(node)
+        assert node in self.node_ids, "error: %s node not in network" % node
         return self.get_adj_list()[node]
 
-    def from_nx(self, nx_graph, node_size_transf=(lambda x: x), edge_weight_transf=(lambda x: x),
-                default_node_size =10, default_edge_weight=1, show_edge_weights=True, edge_scaling=False):
+    def from_nx(
+        self,
+        nx_graph,
+        node_size_transf=(lambda x: x),
+        edge_weight_transf=(lambda x: x),
+        default_node_size=10,
+        default_edge_weight=1,
+        show_edge_weights=True,
+        edge_scaling=False,
+    ):
         """
         This method takes an exisitng Networkx graph and translates
         it to a PyVis graph format that can be accepted by the VisJs
@@ -689,27 +736,27 @@ class Network(object):
         >>> nt.from_nx(nx_graph)
         >>> nt.show("nx.html")
         """
-        assert(isinstance(nx_graph, nx.Graph))
-        edges=nx_graph.edges(data = True)
-        nodes=nx_graph.nodes(data = True)
+        assert isinstance(nx_graph, nx.Graph)
+        edges = nx_graph.edges(data=True)
+        nodes = nx_graph.nodes(data=True)
 
         if len(edges) > 0:
             for e in edges:
-                if 'size' not in nodes[e[0]].keys():
-                    nodes[e[0]]['size']=default_node_size
-                nodes[e[0]]['size']=int(node_size_transf(nodes[e[0]]['size']))
-                if 'size' not in nodes[e[1]].keys():
-                    nodes[e[1]]['size']=default_node_size
-                nodes[e[1]]['size']=int(node_size_transf(nodes[e[1]]['size']))
+                if "size" not in nodes[e[0]].keys():
+                    nodes[e[0]]["size"] = default_node_size
+                nodes[e[0]]["size"] = int(node_size_transf(nodes[e[0]]["size"]))
+                if "size" not in nodes[e[1]].keys():
+                    nodes[e[1]]["size"] = default_node_size
+                nodes[e[1]]["size"] = int(node_size_transf(nodes[e[1]]["size"]))
                 self.add_node(e[0], **nodes[e[0]])
                 self.add_node(e[1], **nodes[e[1]])
 
                 # if user does not pass a 'weight' argument
                 if "value" not in e[2] or "width" not in e[2]:
                     if edge_scaling:
-                        width_type = 'value'
+                        width_type = "value"
                     else:
-                        width_type = 'width'
+                        width_type = "width"
                     if "weight" not in e[2].keys():
                         e[2]["weight"] = default_edge_weight
                     e[2][width_type] = edge_weight_transf(e[2]["weight"])
@@ -718,8 +765,8 @@ class Network(object):
                 self.add_edge(e[0], e[1], **e[2])
 
         for node in nx.isolates(nx_graph):
-            if 'size' not in nodes[node].keys():
-                nodes[node]['size'] = default_node_size
+            if "size" not in nodes[node].keys():
+                nodes[node]["size"] = default_node_size
             self.add_node(node, **nodes[node])
 
     def get_nodes(self):
@@ -740,7 +787,7 @@ class Network(object):
         """
         return self.node_map[n_id]
 
-    def try_get_node(self, n_id) -> None | Dict :
+    def try_get_node(self, n_id) -> None | Dict:
         """
         Lookup node by ID and return it if it exists.
 
@@ -759,13 +806,13 @@ class Network(object):
         return self.edges
 
     def barnes_hut(
-            self,
-            gravity=-80000,
-            central_gravity=0.3,
-            spring_length=250,
-            spring_strength=0.001,
-            damping=0.09,
-            overlap=0
+        self,
+        gravity=-80000,
+        central_gravity=0.3,
+        spring_length=250,
+        spring_strength=0.001,
+        damping=0.09,
+        overlap=0,
     ):
         """
         BarnesHut is a quadtree based gravity model. It is the fastest. default
@@ -774,7 +821,7 @@ class Network(object):
         :param gravity: The more negative the gravity value is, the stronger the
                         repulsion is.
         :param central_gravity: The gravity attractor to pull the entire network
-                                to the center. 
+                                to the center.
         :param spring_length: The rest length of the edges
         :param spring_strength: The strong the edges springs are
         :param damping: A value ranging from 0 to 1 of how much of the velocity
@@ -795,12 +842,12 @@ class Network(object):
         self.options.physics.use_barnes_hut(locals())
 
     def repulsion(
-            self,
-            node_distance=100,
-            central_gravity=0.2,
-            spring_length=200,
-            spring_strength=0.05,
-            damping=0.09
+        self,
+        node_distance=100,
+        central_gravity=0.2,
+        spring_length=200,
+        spring_strength=0.05,
+        damping=0.09,
     ):
         """
         Set the physics attribute of the entire network to repulsion.
@@ -824,12 +871,12 @@ class Network(object):
         self.options.physics.use_repulsion(locals())
 
     def hrepulsion(
-            self,
-            node_distance=120,
-            central_gravity=0.0,
-            spring_length=100,
-            spring_strength=0.01,
-            damping=0.09
+        self,
+        node_distance=120,
+        central_gravity=0.0,
+        spring_length=100,
+        spring_strength=0.01,
+        damping=0.09,
     ):
         """
         This model is based on the repulsion solver but the levels are
@@ -853,13 +900,13 @@ class Network(object):
         self.options.physics.use_hrepulsion(locals())
 
     def force_atlas_2based(
-            self,
-            gravity=-50,
-            central_gravity=0.01,
-            spring_length=100,
-            spring_strength=0.08,
-            damping=0.4,
-            overlap=0
+        self,
+        gravity=-50,
+        central_gravity=0.01,
+        spring_length=100,
+        spring_strength=0.08,
+        damping=0.4,
+        overlap=0,
     ):
         """
         The forceAtlas2Based solver makes use of some of the equations provided
@@ -872,7 +919,7 @@ class Network(object):
         :param gravity: The more negative the gravity value is, the stronger the
                         repulsion is.
         :param central_gravity: The gravity attractor to pull the entire network
-                                to the center. 
+                                to the center.
         :param spring_length: The rest length of the edges
         :param spring_strength: The strong the edges springs are
         :param damping: A value ranging from 0 to 1 of how much of the velocity
@@ -919,7 +966,7 @@ class Network(object):
         panning of the network easy.
 
         :param status: True if edges should be hidden on drag
-        
+
         :type status: bool
         """
         self.options.interaction.hideEdgesOnDrag = status
@@ -974,7 +1021,7 @@ class Network(object):
 
     def toggle_physics(self, status):
         """
-        Toggles physics simulation 
+        Toggles physics simulation
 
         :param status: When False, nodes are not part of the physics
                        simulation. They will not move except for from
@@ -1013,7 +1060,7 @@ class Network(object):
 
         :param options: The string representation of the Javascript-like object
                         to be used to override default options.
-        
+
         :type options: str
         """
         self.options = self.options.set(options)
